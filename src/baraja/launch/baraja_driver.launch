@@ -1,0 +1,23 @@
+<!-- This file is intended to be included by other scripts. Do not modify this file.-->
+<launch>
+    <arg name="engine_ip" default="192.168.9.10" />
+    <arg name="s1_link" default="0 0 0 0 0 0" />
+    <arg name="s2_link" default="0 0 0 0 0 0" />
+    <arg name="s3_link" default="0 0 0 0 0 0" />
+    <arg name="s4_link" default="0 0 0 0 0 0" />
+
+    <arg name="lidar_name" default="baraja_lidar" />
+    <arg name="parent_link" default="base_link" />
+    <arg name="child_link" default="sensorhead" />
+
+    <node pkg="nodelet" type="nodelet" name="$(arg lidar_name)"
+        args="load baraja/baraja_lidar baraja_base" output="screen">
+        <param name="frame" value="$(arg child_link)" />
+        <param name="engine_ip" value="$(arg engine_ip)" />
+    </node>
+
+    <node pkg="tf2_ros" type="static_transform_publisher" name="$(arg child_link)1_link" args="$(arg s1_link) $(arg parent_link) $(arg child_link)1" />
+	<!-- <node pkg="tf2_ros" type="static_transform_publisher" name="$(arg child_link)2_link" args="$(arg s2_link) $(arg parent_link) $(arg child_link)2" /> -->
+	<!-- <node pkg="tf2_ros" type="static_transform_publisher" name="$(arg child_link)3_link" args="$(arg s3_link) $(arg parent_link) $(arg child_link)3" /> -->
+	<!-- <node pkg="tf2_ros" type="static_transform_publisher" name="$(arg child_link)4_link" args="$(arg s4_link) $(arg parent_link) $(arg child_link)4" /> -->
+</launch>

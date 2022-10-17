@@ -1,0 +1,37 @@
+<launch>
+    <!-- Including the base launch file initialises the nodelet manager and the listener node, this cannot be skipped-->
+    <include file="$(find baraja)/launch/baraja_base.launch" />
+
+    <!-- Any number of driver nodelet instances can be intantiated by including multiple copies of the
+         baraja_driver.launch file. Each instance must specify a unique ip address from which to accept packets
+         from the given engine -->
+    <include file="$(find baraja)/launch/baraja_driver.launch">
+        <arg name="engine_ip" default="192.168.9.10" />
+        <arg name="parent_link" default="base_link" />
+
+        <!-- Here you can specify the sensorhead transformations, x, y, z, yaw, pitch, roll -->
+        <arg name="s1_link" default="0 0 0 0 0 0" />
+        <arg name="s2_link" default="0 0 0 0 0 0" />
+        <arg name="s3_link" default="0 0 0 0 0 0" />
+        <arg name="s4_link" default="0 0 0 0 0 0" />
+
+        <!-- Unique parameters can be used to identify this instance of the engine and its sensorhead
+            lidar_name: This will be the name of the nodelet instantiated.
+            child_link: This will be the prefix used for published topics from each numbered sensorhead -->
+        <arg name="lidar_name" default="baraja_lidar_1" />
+        <arg name="child_link" default="sensorhead_1_" />
+    </include>
+
+    <include file="$(find baraja)/launch/baraja_driver.launch">
+        <arg name="engine_ip" default="192.168.9.11" />
+        <arg name="parent_link" default="base_link" />
+
+        <arg name="s1_link" default="0 0 0 0 0 0" />
+        <arg name="s2_link" default="0 0 0 0 0 0" />
+        <arg name="s3_link" default="0 0 0 0 0 0" />
+        <arg name="s4_link" default="0 0 0 0 0 0" />
+
+        <arg name="lidar_name" default="baraja_lidar_2" />
+        <arg name="child_link" default="sensorhead_2_" />
+    </include>
+ </launch>

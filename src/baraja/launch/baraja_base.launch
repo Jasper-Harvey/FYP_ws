@@ -1,0 +1,9 @@
+<!-- This file is intended to be included by other scripts. Do not modify this file.-->
+<launch>
+
+  <node pkg="nodelet" type="nodelet" name="baraja_base"  args="manager" output="screen"/>
+
+  <node pkg="nodelet" type="nodelet" name="baraja_listener"
+        args="load baraja/baraja_listener baraja_base" output="screen">
+  </node>
+ </launch>

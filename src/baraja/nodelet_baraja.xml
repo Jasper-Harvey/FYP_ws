@@ -1,0 +1,20 @@
+<library path="lib/libbaraja_listener">
+    <class name="baraja/baraja_listener" type="baraja::BarajaListener" base_class_type="nodelet::Nodelet">
+        <description>
+            This nodelet binds to a udp port, receives udp packets from any engines, and publishes for consumption by
+            one or more baraja lidar drivers.
+        </description>
+    </class>
+</library>
+<library path="lib/libbaraja_lidar">
+    <class name="baraja/baraja_lidar" type="baraja::BarajaLidar" base_class_type="nodelet::Nodelet">
+        <description>
+            This nodelet consumes raw udp packets from a BarajaListener nodelet, processing only those originating from
+            the configured engine ip. This then publishes one PointCloud2 topic for each active sensorhead.
+            sensorhead.
+
+            Multiple baraja lidar nodelets can be specified for a single listener, corresponding to a single lidar unit
+            and configured with the ip address of the given lidar engine.
+        </description>
+    </class>
+</library>
