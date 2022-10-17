@@ -1,0 +1,77 @@
+<launch>
+	<!-- 
+		Launch file to start nodes required to do SLAM in RTABmap. 
+		Starts:
+		- Advanced navigation node? 
+		- camera_arena_node
+		- baraja lidar node
+		- cloud_relay node (to sync timestamps of RGB and pointclouds)
+		
+		RTABmap should register depth images from the point cloud and images
+	-->
+
+
+	<!-- Setting camera parameter URL -->
+	<arg name="cameraParam" default="file://$(find arena_camera)/config/camera_params.yaml" />
+	<param name="camera_arena_node/camera_info_url" value="$(arg cameraParam)" />
+
+	<!-- Set transform between lidar and camera -->
+	<node pkg="tf" type="static_transform_publisher" name="camera_lidar_tf_broardcaster" args="0.1031 -0.1346 0.0031 -0.4809 0.5136 -0.5057 0.4992 sensorhead_11 camera 1" />
+	
+	<!-- Set transform between lidar and IMU -->
+	<node pkg="tf" type="static_transform_publisher" name="IMU_lidar_tf_broardcaster" args="0 0 0 -1.5707 -3.14159 0 sensorhead_11 an_spatial 1" />
+
+	<!-- Start node to pull data from camera -->
+ 	<arg name="config_file" default="$(find arena_camera)/config/default.yaml" />
+
+	<node name="camera_arena_node" pkg="arena_camera" type="arena_camera_node" output="screen" >
+	<rosparam command="load" file="$(arg config_file)" />
+	</node>
+
+
+	<!-- Start node for LIDAR -->
+	<include file="$(find baraja)/launch/baraja_base.launch" />
+	<include file="$(find baraja)/launch/baraja_driver.launch">
+        <arg name="engine_ip" default="192.168.9.10" />
+        <arg name="parent_link" default="base_link" />
+
+		<!-- Here you can specify the sensorhead transformations, x, y, z, yaw, pitch, roll -->
+        <arg name="s1_link" default="0 0 0 0 0 0" />
+
+        <!-- Unique parameters can be used to identify this instance of the engine and its sensorhead
+            lidar_name: This will be the name of the nodelet instantiated.
+            child_link: This will be the prefix used for published topics from each numbered sensorhead -->
+        <arg name="lidar_name" default="baraja_lidar_1" />
+        <arg name="child_link" default="sensorhead_1" />
+    </include>
+
+
+	<!-- Start point cloud and image time synchronization (No longer used! RTABmap can handle itself)-->
+	<!-- <node name="cloud_rgb_sync" pkg="cloud_relay" type="relay" output="screen" /> -->
+
+
+	<!-- Start advanced navigation node -->
+	<!-- NTRIP:=true will get correction data from NWC00AUS0 -->
+	<arg name="IMU" default="false" />
+	<arg name="NTRIP" default="false" />
+	<arg name="device" default="/dev/ttyUSB0" />
+	<arg name="baud" default="115200" />
+	<arg name="mountPoint" default="-m NWCS00AUS0" />
+	<arg name="server" default="-s ntrip.data.gnss.ga.gov.au" />
+	<arg name="port" default="-r 2101" />
+	<arg name="user" default="-u jasperHarvey" />
+	<arg name="pass" default="-p Mcha2022*" />
+	<node if="$(eval arg('IMU') and arg('NTRIP'))" name="an_device" pkg="an-driver" type="an-driver" args="-D $(arg device) -B $(arg baud) $(arg mountPoint) $(arg server) $(arg port) $(arg user) $(arg pass)" output="screen" />
+	<node if="$(eval arg('IMU') and not arg('NTRIP'))" name="an_device" pkg="an-driver" type="an-driver" args="$(arg baud) $(arg device)" output="screen" />
+
+
+
+
+
+	<!-- Old Transforms -->
+		<!-- <node pkg="tf" type="static_transform_publisher" name="camera_lidar_tf_broardcaster" args="-0.1031 -0.0031 -0.1346 -0.4809 0.5136 -0.5057 0.4992 sensorhead_11 camera 10" /> -->
+		<!-- <node pkg="tf" type="static_transform_publisher" name="camera_base_link" args="0 0 0 -1.57079632 1.57079632 0 base_link camera 10" /> -->
+		<!-- <node pkg="tf" type="static_transform_publisher" name="IMU_lidar_tf_broardcaster" args="0 0 0 3.14149 0 1.5707 camera an_spatial 1" /> -->
+
+
+</launch>

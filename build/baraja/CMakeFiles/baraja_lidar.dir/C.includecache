@@ -1,0 +1,20 @@
+#IncludeRegexLine: ^[ 	]*[#%][ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+/home/jasper/FYP_ws/src/baraja/include/baraja/bpc_packet.h
+stdint.h
+-
+stddef.h
+-
+
+/home/jasper/FYP_ws/src/baraja/src/bpc_packet.c
+baraja/bpc_packet.h
+-
+stddef.h
+-
+

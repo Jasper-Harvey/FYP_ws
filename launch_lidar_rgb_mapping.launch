@@ -1,0 +1,152 @@
+<!-- 
+    Launch file to start RTABmap for FYP
+    - Computes odometry from ICP
+    - If IMU:=true given as an argument, the EKF node is launched, and ICP
+      is fused with the IMU information.
+ -->
+
+<launch>
+
+  <arg name="odom"   default="0"/> <!-- Default odometry strategy. 0 = FTM, 1 = FTM, 11 = F-FLOAM -->
+  <arg name="navigation"   default="true"/>
+  <arg name="localization" default="false"/>
+  <arg name="icp_odometry" default="true"/>
+  <arg name="IMU" default="false" />
+  <arg name="rtabmapviz"   default="true"/>
+  <arg name="camera"       default="true"/>
+  <arg name="lidar3d"      default="true"/>
+  <arg name="lidar3d_ray_tracing" default="true"/>
+  <arg name="depth_from_lidar" default="true"/>
+  <arg name="assemble" default="false"/>
+  <arg name="mapUpdateRate" default="1"/>
+  
+
+  <arg name="cell_size" default="0.3"/>
+
+  <arg if="$(eval odom == 11)" name="voxel_size" value="0"/>
+  <arg if="$(eval odom == 11)" name="downsampleStep" value="1"/>
+
+  <arg unless="$(eval odom == 11)" name="voxel_size" value="0.3"/>
+  <arg unless="$(eval odom == 11)" name="downsampleStep" default="2"/>
+
+  
+  
+
+  <!-- Odom/Strategy 0 = frame-to-map, 1= frame-to-frame, 11 = F-LOAM -->
+  <!-- Reg/Strategy=0: all transforms are computed with only visual features -->
+  <!-- Reg/Strategy=1: loop closure is computed with visual->icp (visual gives the rough guess to ICP), 
+        but proximity detection and neighbor refining are ICP only based on guess from odometry. -->
+  <!-- Reg/Strategy=2: loop closure, proximity detection and neighbot refining are computed with visual->icp 
+       (visual gives the rough guess to ICP) -->
+       <!-- Only works with reg strat 1 -->
+  <arg name="lidar_args" default="
+      --Reg/Strategy 1
+      --Odom/Strategy $(arg odom)
+      --RGBD/NeighborLinkRefining true 
+      --ICP/PointToPlane false
+  
+      --Icp/PMOutlierRatio 0.8 
+      --Icp/VoxelSize $(arg voxel_size)
+      --Icp/MaxCorrespondenceDistance 2
+      --Icp/PointToPlaneGroundNormalsUp 0.8
+      --Icp/Iterations 30
+      --Icp/Epsilon 0.001
+      --Icp/RangeMin 0.2
+      --Icp/RangeMax 0
+      --Icp/DownsamplingStep $(arg downsampleStep)
+      --Icp/PointToPlaneK 10
+      --Icp/MaxTranslation 4
+      --Icp/PointToPlaneRadius 0
+      --Icp/CorrespondenceRatio 0.1
+      --OdomF2M/ScanSubtractRadius $(arg cell_size)
+      --OdomF2M/ScanMaxSize 30000 
+      --Grid/ClusterRadius 0.5 
+      --Grid/RangeMax 40
+      --Grid/RayTracing $(arg lidar3d_ray_tracing) 
+      --Grid/CellSize $(arg cell_size)
+      --Grid/Sensor 0
+      
+
+      --RGBD/ProximityGlobalScanMap false"/>
+
+  
+  <!--- Run rtabmap -->
+  <remap from="/rtabmap/grid_map" to="/map"/>
+  <include file="$(find rtabmap_ros)/launch/rtabmap.launch">
+    <arg name="args" value="--Reg/Force3DoF false $(arg lidar_args) -d --delete_db_on_start" /> <!-- create new map -->
+    <!-- Two odom topcis icp_odom_topic and odom_topic -->
+
+    <arg if="$(arg IMU)" name="odom_topic" default="/odom_ekf" /> <!-- Subscribe to ekf or not -->
+    <arg unless="$(arg IMU)" name="odom_topic" default="/odom" />
+    <arg name="publish_tf_odom" default="false" />
+    
+
+
+    <!-- <arg name="icp_odom_topic" default="icp_odom" /> -->
+    <!-- <arg if="$(arg IMU)" name="odom_topic" default="odom_ekf" />  -->
+    <!-- <arg unless="$(arg IMU)" name="odom_topic" default="icp_odom" /> -->
+    <arg name="localization"    value="$(arg localization)" />
+    <arg name="visual_odometry" value="false" />
+    <arg name="approx_sync"     value="$(eval camera or not icp_odometry)" />
+    <!-- <arg name="imu_topic"       value="/an_device/Imu" /> -->
+
+    <arg name="frame_id"        value="base_link" />
+    <!-- <arg name="odom_frame_id"        value="odom_ekf" /> -->
+    <arg name="rtabmapviz"      value="$(arg rtabmapviz)" />
+    <arg name="gps_topic"       value="/navsat/fix"/>
+    
+    <!-- 3D LiDAR -->
+    <arg name="subscribe_scan_cloud"  value="$(arg lidar3d)" />
+    <arg unless="$(arg assemble)" name="scan_cloud_topic"      value="/baraja_lidar_1/sensorhead_11" />
+    <arg if="$(arg assemble)" name="scan_cloud_topic"      value="/assembled_cloud" />
+    
+    <!-- If camera is used -->
+    <arg name="depth"             value="$(eval camera and not depth_from_lidar)" />
+    <arg name="subscribe_rgb"     value="$(eval camera)" />
+    <arg name="rgbd_sync"         value="$(eval camera and not depth_from_lidar)" />
+    <arg name="rgb_topic"         value="/camera_arena_node/image_rect" />
+    <arg name="camera_info_topic" value="/camera_arena_node/camera_info" />
+    <arg name="approx_rgbd_sync"  value="false" />
+    
+    <!-- If depth generated from lidar projection (in case we have only a single RGB camera with a 3D lidar) -->
+    <arg name="gen_depth"                  value="$(arg depth_from_lidar)" />
+    <!-- 3 is the maximum decimation we can use -->
+    <arg name="gen_depth_decimation"       value="3" /> <!-- was 3-->
+    <arg name="gen_depth_fill_holes_size"  value="10" />
+    <arg name="gen_depth_fill_iterations"  value="5" />
+    <arg name="gen_depth_fill_holes_error" value="0.1" />
+    
+    <!-- If icp_odometry is used -->
+    <!-- <arg if="$(arg icp_odometry)" name="icp_odometry" value="true" /> -->
+
+    
+  
+
+
+  </include>
+  <param name="/rtabmap/rtabmap/Rtabmap/DetectionRate" value="$(arg mapUpdateRate)" />
+
+  <node pkg="rtabmap_ros" type="icp_odometry" name="icp_odometry" output="screen" args="$(arg lidar_args)">
+    <remap from="scan_cloud"      to="/baraja_lidar_1/sensorhead_11"/>
+    <param name="frame_id"        type="string" value="base_link"/>
+    <param name="odom_frame_id"        type="string" value="odom"/>
+    <param name="publish_tf_odom" value="false" />
+  </node>
+
+
+  <node if="$(arg assemble)" pkg="rtabmap_ros" type="point_cloud_assembler" name="point_cloud_assembler" output="screen">
+    <remap from="cloud"           to="/baraja_lidar_1/sensorhead_11"/>
+    <remap from="odom"            to="odom"/>
+    <param name="assembling_time" type="double" value="0.25" />
+    <param name="fixed_frame_id"  type="string" value="" />
+  </node>
+
+
+  <include if="$(arg IMU)" file="/home/jasper/FYP_ws/sensorFusion.launch"/>
+
+    <arg name="rviz"      value="true" />
+    <arg name="rviz_cfg"                default="-d $(find rtabmap_ros)/launch/config/rvizConfig.rviz" />
+  <node if="$(arg rviz)" pkg="rviz" type="rviz" name="rviz" args="$(arg rviz_cfg)"/>
+
+
+</launch>

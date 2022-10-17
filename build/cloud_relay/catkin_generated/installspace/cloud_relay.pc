@@ -1,0 +1,8 @@
+prefix=/home/jasper/FYP_ws/install
+
+Name: cloud_relay
+Description: Description of cloud_relay
+Version: 0.0.0
+Cflags: 
+Libs: -L${prefix}/lib 
+Requires: 

@@ -1,0 +1,15 @@
+<launch>
+	<!-- 
+		Launch file to start required transforms between the sensors
+	-->
+
+
+	<!-- Set transform between lidar and camera -->
+	<node pkg="tf" type="static_transform_publisher" name="camera_lidar_tf_broardcaster" args="0.1031 -0.1346 0.0031 -0.4809 0.5136 -0.5057 0.4992 sensorhead_11 camera 1" />
+	
+	<!-- Set transform between lidar and IMU -->
+	<!-- <node pkg="tf" type="static_transform_publisher" name="IMU_lidar_tf_broardcaster" args="0 0 0 -1.5707 -3.14159 0 sensorhead_11 an_spatial 1" /> -->
+	<node pkg="tf" type="static_transform_publisher" name="IMU_lidar_tf_broardcaster" args="0 0 0 1.5150 0.0055 -3.1404 sensorhead_11 an_spatial 1" />
+	<node pkg="tf" type="static_transform_publisher" name="base_link_lidar" args="0 0 0 0 0 0 base_link sensorhead_11 1" />
+
+</launch>
