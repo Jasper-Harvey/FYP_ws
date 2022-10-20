@@ -2,14 +2,18 @@
 Very simple script to monitor the LiDAR temperature and status.
 Can also toggle the LiDAR state to Run/Idle
 
+Was a quick hack job... No guarantees are made about how well it all works
+
 By Jasper Harvey - 17/10/2022
 '''
 
 import requests
-from PyQt5.QtWidgets import QMainWindow, QPushButton, QVBoxLayout, QLabel, QWidget, QApplication
+from PyQt5.QtCore import Qt
+from PyQt5.QtWidgets import QMainWindow, QPushButton, QVBoxLayout, QHBoxLayout, QLabel, QWidget, QApplication, QComboBox
 from PyQt5.QtCore import QTimer
 from PyQt5.QtGui import QFont
 
+OFFLINE_DEBUG = True
 
 class MainWindow(QMainWindow):
 
@@ -18,9 +22,30 @@ class MainWindow(QMainWindow):
 
         self.api_url = "http://192.168.9.10:8007/"
 
+        # Link api call and scan name
+        # Typical way to call the API is playtable=playtable-[name].txt
+        self.scanOptions = (
+            ("128 Point", self.api_url + "playtable/set?playtable=playtable-128_point.txt"),
+            ("96 Point", self.api_url + "playtable/set?playtable=playtable-96_point.txt"),
+            ("128 Point Uniform", self.api_url + "playtable/set?playtable=playtable-128_point_Uniform.txt"),
+            ("96 Point Uniform", self.api_url + "playtable/set?playtable=playtable-96_point_Uniform.txt"),
+        )
+
+    
         self.toggleButton = QPushButton("Run/Idle")
         self.toggleButton.setFont(QFont("Arial", 20))
         self.toggleButton.pressed.connect(self.toggleMode)
+
+        self.modeBox = QComboBox()
+        for item in self.scanOptions:
+            self.modeBox.addItem(item[0])
+
+        self.modeOk = QPushButton("Change Mode")
+        self.modeOk.clicked.connect(self.changeScanMode)
+        self.currentModeLabel = QLabel("Current Mode: \n96 Point")
+        self.currentModeLabel.setFont(QFont("Arial", 14))
+        modeLabel = QLabel("Set scan mode:")
+        modeLabel.setFont(QFont("Arial", 14))
 
         self.mode = QLabel()
         self.mode.setFont(QFont("Arial", 20))
@@ -31,15 +56,33 @@ class MainWindow(QMainWindow):
         self.processor_temp = QLabel()
         self.processor_temp.setFont(QFont("Arial", 20))
 
-        layout = QVBoxLayout()
-        layout.setSpacing(15)
-        layout.addWidget(self.toggleButton)
-        layout.addWidget(self.mode)
-        layout.addWidget(self.tx_temp)
-        layout.addWidget(self.rx_temp)
-        layout.addWidget(self.processor_temp)
+        Vlayout = QVBoxLayout()
+        Vlayout.setSpacing(15)
+        Vlayout.addWidget(self.toggleButton, alignment=Qt.AlignTop)
+        Vlayout.addWidget(self.mode)
+        Vlayout.addWidget(self.tx_temp)
+        Vlayout.addWidget(self.rx_temp)
+        Vlayout.addWidget(self.processor_temp)
+
+        leftPanel = QWidget()
+        leftPanel.setLayout(Vlayout)
+
+        Vlayout = QVBoxLayout()
+        Vlayout.addWidget(modeLabel, alignment=Qt.AlignTop)
+        Vlayout.addWidget(self.modeBox, alignment=Qt.AlignTop)
+        Vlayout.addWidget(self.modeOk)
+        Vlayout.addWidget(self.currentModeLabel)
+        Vlayout.setSpacing(15)
+        Vlayout.addStretch(1)
+        rightPanel = QWidget()
+        rightPanel.setLayout(Vlayout)
+        
+        Hlayout = QHBoxLayout()
+        Hlayout.addWidget(leftPanel)
+        Hlayout.addWidget(rightPanel)
+        
         w = QWidget()
-        w.setLayout(layout)
+        w.setLayout(Hlayout)
         
         self.setCentralWidget(w)
         self.show()
@@ -52,8 +95,6 @@ class MainWindow(QMainWindow):
     def update_stats(self):
         temps = self.get_temperature()
         mode = self.get_mode()
-
-        # print(mode)
         
         tx_temp = temps["stat_tx_temp"]
         rx_temp = temps["stat_rx_temp"]
@@ -79,13 +120,20 @@ class MainWindow(QMainWindow):
             self.mode.setStyleSheet("background-color: red")
 
     def get_temperature(self):
-        reply = requests.get(self.api_url + "DeviceStatus/Get?stat_tx_temp&stat_rx_temp&stat_proc_temp")
+        if OFFLINE_DEBUG:
+            return {"stat_tx_temp": 2033,
+                    "stat_rx_temp": 2213,
+                    "stat_proc_temp" : 5535}
 
-        return reply.json()
+        reply = requests.get(self.api_url + "DeviceStatus/Get?stat_tx_temp&stat_rx_temp&stat_proc_temp")
+        return reply.json() 
 
     def get_mode(self):
-        reply = requests.get(self.api_url + "Mode/Get")
+        if OFFLINE_DEBUG:
+            return {"Mode" : "Idle",
+                    "Error" : 0}
 
+        reply = requests.get(self.api_url + "Mode/Get")
         return reply.json()
 
     def toggleMode(self):
@@ -98,6 +146,30 @@ class MainWindow(QMainWindow):
             change_mode = requests.get(self.api_url + "Mode/Set/Idle")
 
         print(current_mode.json)
+
+    def getScanMode(self):
+        # Request the current playtable.
+        if OFFLINE_DEBUG:
+            return "96 Point"
+
+        request = self.api_url + "playtable/get" # Just a guess
+        info = requests.get(request)
+        
+
+    def changeScanMode(self):
+        currentIdx = self.modeBox.currentIndex()
+        print(self.scanOptions[currentIdx])
+        if OFFLINE_DEBUG:
+            return
+
+    
+        try:
+            option = self.scanOptions[currentIdx]
+        except IndexError:
+            print("Not implemented yet.")
+            return
+
+        change_mode = requests.get(option[1])
         
 
 ########### Main #############
