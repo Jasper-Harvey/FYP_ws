@@ -13,7 +13,7 @@ from PyQt5.QtWidgets import QMainWindow, QPushButton, QVBoxLayout, QHBoxLayout, 
 from PyQt5.QtCore import QTimer
 from PyQt5.QtGui import QFont
 
-OFFLINE_DEBUG = True
+OFFLINE_DEBUG = False # For development when I dont have access to the LiDAR
 
 class MainWindow(QMainWindow):
 
@@ -26,9 +26,9 @@ class MainWindow(QMainWindow):
         # Typical way to call the API is playtable=playtable-[name].txt
         self.scanOptions = (
             ("128 Point", self.api_url + "playtable/set?playtable=playtable-128_point.txt"),
-            ("96 Point", self.api_url + "playtable/set?playtable=playtable-96_point.txt"),
-            ("128 Point Uniform", self.api_url + "playtable/set?playtable=playtable-128_point_Uniform.txt"),
-            ("96 Point Uniform", self.api_url + "playtable/set?playtable=playtable-96_point_Uniform.txt"),
+            ("1000 Point", self.api_url + "playtable/set?playtable=playtable-1000_point.txt"),
+            ("128 Point Uniform", self.api_url + "playtable/set?playtable=playtable-128_Uniform.txt"),
+            ("96 Point Uniform", self.api_url + "playtable/set?playtable=playtable-96_Uniform.txt"),
         )
 
     
@@ -100,6 +100,7 @@ class MainWindow(QMainWindow):
         rx_temp = temps["stat_rx_temp"]
         proc_temp = temps["stat_proc_temp"]
 
+
         self.tx_temp.setText("TX Temp: " + str(tx_temp/100) + " C")
         self.rx_temp.setText("RX Temp: " + str(rx_temp/100) + " C")
         self.processor_temp.setText("Processor Temp: " + str(proc_temp/100) + " C")
@@ -145,16 +146,7 @@ class MainWindow(QMainWindow):
         if current_mode.json()["Mode"] == "Running":
             change_mode = requests.get(self.api_url + "Mode/Set/Idle")
 
-        print(current_mode.json)
-
-    def getScanMode(self):
-        # Request the current playtable.
-        if OFFLINE_DEBUG:
-            return "96 Point"
-
-        request = self.api_url + "playtable/get" # Just a guess
-        info = requests.get(request)
-        
+        # print(current_mode.json)        
 
     def changeScanMode(self):
         currentIdx = self.modeBox.currentIndex()
@@ -165,11 +157,16 @@ class MainWindow(QMainWindow):
     
         try:
             option = self.scanOptions[currentIdx]
+            change_mode = requests.post(option[1]).json()
+            print(change_mode)
+
+            for items in self.scanOptions:
+                if change_mode["result"] in items[1]:
+                    self.currentModeLabel.setText("Current Mode: \n" + items[0])
+
         except IndexError:
             print("Not implemented yet.")
             return
-
-        change_mode = requests.get(option[1])
         
 
 ########### Main #############
