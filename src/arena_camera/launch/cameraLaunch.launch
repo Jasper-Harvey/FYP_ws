@@ -1,0 +1,15 @@
+<launch>
+	<!-- Setting camera parameter URL -->
+	<arg name="cameraParam" default="file://$(find arena_camera)/config/camera_params.yaml" />
+	<param name="camera_arena_node/camera_info_url" value="$(arg cameraParam)" />
+
+	<!-- Set transform between lidar and camera -->
+	<node pkg="tf" type="static_transform_publisher" name="camera_lidar_tf_broardcaster" args="-0.1353 -0.0302 -0.1686 -0.4820 0.5044 -0.5137 0.4994 sensorhead_11 arena_camera 10" />
+
+	<!-- Start node -->
+ 	<arg name="config_file" default="$(find arena_camera)/config/default.yaml" />
+
+	<node name="camera_arena_node" pkg="arena_camera" type="arena_camera_node" output="screen" >
+	<rosparam command="load" file="$(arg config_file)" />
+	</node>
+</launch>
