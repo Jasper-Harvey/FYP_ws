@@ -5,8 +5,6 @@
 		- Advanced navigation node? 
 		- camera_arena_node
 		- baraja lidar node
-		- cloud_relay node (to sync timestamps of RGB and pointclouds)
-		
 		RTABmap should register depth images from the point cloud and images
 	-->
 
