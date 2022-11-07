@@ -61,7 +61,7 @@ To run SLAM on some pre-recorded data from a bag file do:
 - You will need to "pip install PyQt5" to use the LiDAR monitor.  
 
 
-## Installation:
+# Installation:
 All installation instructions assume you are using [Ubuntu 18.04](https://releases.ubuntu.com/18.04/)
 
 #### ROS
@@ -115,7 +115,7 @@ All installation instructions assume you are using [Ubuntu 18.04](https://releas
     pkg-config --modversion opencv
     ```
     Should see 3.2.0
-- Install RTABmap from source. It is important to install RTABmap from source, as it makes life a lot easier to manage the package and modify the source if needed. This is basically following source install instructions from [here](https://github.com/introlab/rtabmap_ros/tree/melodic-devel)
+- Install RTABmap from source. It is important to install RTABmap from source, as it makes life a lot easier to manage the package and modify the source if needed. This is basically following source install instructions from [here](https://github.com/introlab/rtabmap_ros/tree/melodic-devel). Install optional dependencies.
     ```shell
         sudo apt install ros-melodic-libg2o
         sudo apt install ros-melodic-rtabmap
@@ -139,7 +139,54 @@ All installation instructions assume you are using [Ubuntu 18.04](https://releas
 
     ```
 
-Extras to build workspace:
+Install Lucid Vision Labs SDK:
+
+1. Get [SDK](https://thinklucid.com/downloads-hub/) 
+2. Extract the SDK to home directory (~/)
+```shell
+	tar -xvf ArenaSDK_v0.1.26_Linux_x64.tar.gz -C ~
+```
+3. Setup:
+```shell
+	cd ~/ArenaSDK_Linux_x64/
+	sudo sh Arena_SDK_Linux_x64.conf
+```
+
+4. Add environment variable
+```shell
+	echo "export ARENA_ROOT=~/ArenaSDK_Linux_x64" >> ~/.bashrc
+	source ~/.bashrc
+```
+
+5. Confirm the environment variable has been set
+```shell
+	echo $ARENA_ROOT
+```
+
+That *should* get the SDK setup. Pretty sure its all pre-compiled so nothing to do there. 
+
+
+Now ROS, RTABmap and OpenCV should be installed. Clone this repo:
+
+```
+cd
+mkdir FYP_ws
+cd FYP_ws
+git clone https://github.com/Jasper-Harvey/FYP_ws.git
+```
+
+You will need to copy extra camera messages used by the Lucid Vision Labs driver:
+
+```
+cd FYP_ws
+sudo cp /opt/ros/melodic/include/sensor_msgs/image_encodings.h /opt/ros/melodic/include/sensor_msgs/image_encodings.h.bak 
+
+sudo cp inc/image_encodings.h /opt/ros/melodic/include/sensor_msgs/image_encodings.h
+```
+
+
+
+A few other packages that you might need to install to get RTABmap_ros to compile:
 ```
 sudo apt install ros-melodic-geographic-msgs ros-melodic-geographic-info
 sudo apt install libgeographic-dev
@@ -147,10 +194,20 @@ sudo apt install libcpprest-dev
 ```
 
 
-Figure out how to make it work. 
-- Lucid Vision SDK
+The workspace should now be setup, now build it:
+```
+cd FYP_ws 
+catkin_make
+```
 
 
-## Pretty pictures:
+If you are having issues, the ROS workspace can be reconstructed from scatch by installing
+- rtabmap_ros [git](https://github.com/introlab/rtabmap_ros/tree/melodic-devel)
+- robot_localizaiton [git](https://github.com/cra-ros-pkg/robot_localization/tree/melodic-devel)
+- baraja (the baraja LIDAR ros driver). You'll have to contact them for the driver source code.
+- an-driver [git](https://github.com/advanced-navigation/ros1-driver)
+- arena-camera [git](https://github.com/lucidvisionlabs/arena_camera_ros)
 
+Then just use the launch files contained in this repo. 
+The camera calibration files and settings are stored in /src/arena-camera/config
 
