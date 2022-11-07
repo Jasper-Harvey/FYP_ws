@@ -34,7 +34,6 @@
 #include <math.h>
 #include <unistd.h>
 #include <time.h>
-#include<sys/stat.h>    //for struct stat, stat()
 
 #include "NTRIP_Client/NTRIP/ntripclient.h"
 #include "rs232/rs232.h"
@@ -131,7 +130,7 @@ int main(int argc, char *argv[]) {
 	static const uint8_t request_all_configuration[] = { 0xE2, 0x01, 0x10, 0x9A, 0x73, 0xB6, 0xB4, 0xB5, 0xB8, 0xB9, 0xBA, 0xBC, 0xBD, 0xC0, 0xC2, 0xC3, 0xC4, 0x03, 0xC6, 0x45, 0xC7 };
 	
 	FILE *log_file;
-	char filename[64];
+	char filename[32];
 	time_t rawtime;
 	struct tm * timeinfo;
 	int write_counter = 0;
@@ -163,11 +162,10 @@ int main(int argc, char *argv[]) {
 
 	// Intialising for the log files
 	rawtime = time(NULL);
-	timeinfo = localtime(&rawtime);  
-	mkdir("./Advanced_Navigation_ANPP_Logs", 0777);
-	sprintf(filename, "./Advanced_Navigation_ANPP_Logs/Log_%02d-%02d-%02d_%02d-%02d-%02d.anpp", timeinfo->tm_year-100, timeinfo->tm_mon+1, timeinfo->tm_mday, timeinfo->tm_hour, timeinfo->tm_min, timeinfo->tm_sec);
+	timeinfo = localtime(&rawtime);
+	sprintf(filename, "Log_%02d-%02d-%02d_%02d-%02d-%02d.anpp", timeinfo->tm_year-100, timeinfo->tm_mon+1, timeinfo->tm_mday, timeinfo->tm_hour, timeinfo->tm_min, timeinfo->tm_sec);
 	log_file = fopen(filename, "wb");
-	
+
 	// Configuring based on the state, what sort of driver to run
 	if (argc == 1){
 		printf("argc: %d\n", argc);
