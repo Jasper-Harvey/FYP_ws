@@ -1,8 +1,0 @@
-prefix=/home/jasper/FYP_ws/install
-
-Name: baraja
-Description: Description of baraja
-Version: 2.0.1
-Cflags: -I${prefix}/include
-Libs: -L${prefix}/lib -lbaraja_lidar -lbaraja_listener
-Requires: message_runtime

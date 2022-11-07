@@ -1,2 +1,0 @@
-an-driver:arena_camera:baraja:camera_control_msgs:fast_gicp:floam:ndt_omp:ntrip_client:realsense-ros/realsense2_camera:realsense-ros/realsense2_description:robot_localization:rtabmap_ros
--DCATKIN_DEVEL_PREFIX=/home/jasper/FYP_ws/devel -DCMAKE_INSTALL_PREFIX=/home/jasper/FYP_ws/install -G Unix Makefiles

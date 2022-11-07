@@ -1,8 +1,0 @@
-prefix=/home/jasper/FYP_ws/install
-
-Name: an-driver
-Description: Description of an-driver
-Version: 1.0.0
-Cflags: 
-Libs: -L${prefix}/lib 
-Requires: 
